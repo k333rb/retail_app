@@ -48,7 +48,7 @@ data['Cluster'] = kmeans.fit_predict(customer_features)
 
 # Visualize the clustering
 plt.figure()
-plt.scatter(data['unit_price'], data['quantity'],  # Flip the axes here
+plt.scatter(data['unit_price'], data['quantity'],  # Flip the axes
             c=data['Cluster'], cmap='viridis')
 plt.xlabel('UnitPrice')  # Now x-axis represents UnitPrice
 plt.ylabel('Quantity')  # Now y-axis represents Quantity
@@ -56,7 +56,8 @@ plt.title('Customer Segmentation')
 
 
 # Predictive analysis: Forecast Quantity based on UnitPrice
-X = data[['unit_price']]
+data['total_price'] = data['quantity'] * data['unit_price']
+X = data[['total_price']]
 y = data['quantity']
 
 # Split data into training and testing sets (if desired)
@@ -76,7 +77,7 @@ print("Mean Squared Error:", mse)
 plt.figure()
 plt.scatter(X_test, y_test, color='blue')
 plt.plot(X_test, y_pred, color='red', linewidth=2)
-plt.xlabel('UnitPrice')
+plt.xlabel('Total Price')
 plt.ylabel('Quantity')
 plt.title('Sales Prediction')
 
