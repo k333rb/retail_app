@@ -70,18 +70,26 @@ def perform_sales_prediction(data):
     regressor = LinearRegression()
     regressor.fit(X_train, y_train)
     y_pred = regressor.predict(X_test)
+    
+    # Calculate regression line formula: y = mx + b
+    slope = regressor.coef_[0]  # m
+    intercept = regressor.intercept_  # b
+    r2 = r2_score(y_test, y_pred)
 
+    regression_formula = f"y = {slope:.2f}x + {intercept:.2f} (R² = {r2:.2f})"
+
+    # Create Plotly graph
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=X_test.squeeze(), y=y_test, mode='markers', name='Actual', marker=dict(color='blue')))
     fig.add_trace(go.Scatter(x=X_test.squeeze(), y=y_pred, mode='lines', name='Predicted', line=dict(color='red')))
     fig.update_layout(
-        title="Sales Prediction",
+        title=f"Sales Prediction<br><sub>{regression_formula}</sub>",
         xaxis_title="Total Price",
         yaxis_title="Quantity",
         legend_title="Legend"
     )
     
-    return fig, y_test, y_pred
+    return fig, y_test, y_pred, regression_formula
 
 def generate_prediction_insights(y_test, y_pred):
     mae = mean_absolute_error(y_test, y_pred)
@@ -153,7 +161,7 @@ else:
     # Tab 2: Customer Segmentation
     with tab2:
         st.header("Customer Segmentation")
-        n_clusters = st.slider("Select Number of Clusters", min_value=2, max_value=10, value=3)
+        n_clusters = 3
         data = perform_clustering(data, n_clusters=n_clusters)
         fig = px.scatter(
             data, x='unit_price', y='quantity', color='Cluster', title=f"Customer Segmentation ({n_clusters} Clusters)",
@@ -161,7 +169,6 @@ else:
         )
         st.plotly_chart(fig)
 
-        # Add Non-Technical Insights
         st.markdown(f"""
         ### **Understanding the Customer Segmentation Chart**
         - This chart groups customers into **{n_clusters} segments (or clusters)** based on their purchasing behavior.
@@ -175,13 +182,16 @@ else:
         4. **Use Case**: Use these segments to personalize marketing strategies, such as offering discounts to low-spend customers or premium services to high-spend ones.
         """)
 
-    # Tab 3: Sales Prediction
-    with tab3:
-        st.header("Sales Prediction")
-        prediction_fig, y_test, y_pred = perform_sales_prediction(data)
-        st.plotly_chart(prediction_fig)
-        insights = generate_prediction_insights(y_test, y_pred)
-        st.markdown(insights)
+with tab3:
+    st.header("Sales Prediction")
+    prediction_fig, y_test, y_pred, regression_formula = perform_sales_prediction(data)
+    st.plotly_chart(prediction_fig)
+    insights = generate_prediction_insights(y_test, y_pred)
+    st.markdown(insights)
+
+    # Display the regression line formula
+    st.markdown(f"**Regression Line Formula:** {regression_formula}")
+
 
    # Tab 4: Visualizations with Dynamic Insights
 with tab4:
@@ -199,7 +209,6 @@ with tab4:
     )
     st.plotly_chart(fig_products)
 
-    # Insights for Top Selling Products
     st.markdown(f"""
     ### **Insights for Top Selling Products**
     - The product **"{top_products.idxmax()}"** is the most sold item, with a total quantity of **{top_products.max()}** units.
@@ -219,7 +228,6 @@ with tab4:
     )
     st.plotly_chart(fig_country)
 
-    # Insights for Sales by Country
     st.markdown(f"""
     ### **Insights for Sales by Country**
     - The country with the highest sales is **"{sales_by_country.idxmax()}"**, with a total of **{sales_by_country.max()}** units sold.
@@ -227,4 +235,3 @@ with tab4:
     - The data shows a clear dominance by **"{sales_by_country.idxmax()}"**, indicating potential for scaling operations in other high-performing regions.
     - Use these insights to optimize distribution channels and tailor marketing strategies to specific countries.
     """)
-
